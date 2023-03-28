@@ -1,0 +1,68 @@
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+public class APITest {
+
+  @Test
+  public void verifyAPIResponse() {
+    String apiUrl = "https://example.com/api/";
+    String apiEndpoint = "users/1";
+    String expectedName = "John Smith";
+    String expectedEmail = "john.smith@example.com";
+    
+    RestAssured.baseURI = apiUrl;
+    Response response = RestAssured.given().get(apiEndpoint);
+    
+    Assert.assertEquals(response.getStatusCode(), 200);
+    Assert.assertEquals(response.getBody().jsonPath().get("name"), expectedName);
+    Assert.assertEquals(response.getBody().jsonPath().get("email"), expectedEmail);
+    
+    System.setProperty("webdriver.chrome.driver", "path/to/chromedriver.exe");
+    WebDriver driver = new ChromeDriver();
+    
+    try {
+      driver.get("http://example.com/login");
+      WebElement usernameField = driver.findElement(By.id("username"));
+      WebElement passwordField = driver.findElement(By.id("password"));
+      WebElement submitButton = driver.findElement(By.id("submit"));
+      
+      usernameField.sendKeys("testuser");
+      passwordField.sendKeys("password");
+      submitButton.click();
+      
+      // Verify that the API returns the correct data for the logged in user
+      String authToken = response.getBody().jsonPath().get("authToken");
+      response = RestAssured.given().header("Authorization", authToken).get(apiEndpoint);
+      Assert.assertEquals(response.getStatusCode(), 200);
+      Assert.assertEquals(response.getBody().jsonPath().get("name"), expectedName);
+      Assert.assertEquals(response.getBody().jsonPath().get("email"), expectedEmail);
+      
+    } catch (Exception e) {
+      System.out.println("Error: " + e.getMessage());
+    } finally {
+      driver.quit();
+    }
+  }
+}
+/*
+In this example, the test script uses RestAssured 
+library to make API requests to the web application 
+and Selenium to simulate user login and use the API endpoint. 
+It then uses JSONPath assertions to verify that the API returns 
+the correct data for the user.
+
+Run Test Script: Once you have written the test script, 
+you can run it using a Test Automation Framework like TestNG or
+ JUnit to automate the testing process. The test script will use 
+ RestAssured to make API requests and Selenium to simulate user 
+ actions, and verify that the API returns the correct data.
+By integrating API testing with a Test Automation Framework like
+ Selenium, you can automate the testing of your APIs and ensure 
+ the accuracy and completeness of your API operations.
+ */
